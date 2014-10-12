@@ -14,7 +14,7 @@
     "mocha": "1",
     "should": "4",
     "supertest": "0",
-    "istanbul": "0"
+    "istanbul-harmony": "0"
   },
   "scripts": {
     "test": "mocha --harmony --reporter spec",
