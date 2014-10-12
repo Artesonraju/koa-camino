@@ -39,7 +39,7 @@ A Step can contain :
   ```js
   var seg = new Step({segment: 'seg'});
   ``` 
-  A paramter : corresponding to a some aritrary string in the url path
+  A parameter : corresponding to a some aritrary string in the url path
   ```js
   var seg = new Step({parameter: 'param'});
   ``` 
@@ -47,7 +47,7 @@ A Step can contain :
   ```js
   var step = new Step({method: 'GET', action: function*(next){}});
   ```
-  A composition of the three least
+  A composition of the last three
   ```js
   var step = new Step({segment: 'seg', parameter: 'param', method: 'GET', action: function*(next){}});
   ```
