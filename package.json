@@ -1,0 +1,37 @@
+{
+  "name": "koa-camino",
+  "version": "0.0.1",
+  "description": "router for koa",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+   "files": [
+     "index.js"
+   ],
+  "devDependencies": {
+    "koa": "0.12",
+    "mocha": "1",
+    "should": "4",
+    "supertest": "0",
+    "istanbul": "0"
+  },
+  "scripts": {
+    "test": "mocha --harmony --reporter spec",
+    "test-cov": "node --harmony ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha",
+    "test-travis": "node --harmony ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha --report lcovonly"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Artesonraju/koa-camino.git"
+  },
+  "keywords": [
+    "koa", "route", "router"
+  ],
+  "author": "Etienne Molto",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Artesonraju/koa-camino/issues"
+  },
+  "homepage": "https://github.com/Artesonraju/koa-camino"
+}
