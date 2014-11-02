@@ -10,8 +10,8 @@
      "index.js"
    ],
   "devDependencies": {
-    "koa": "0.12",
-    "mocha": "1",
+    "koa": "0.13",
+    "mocha": "2",
     "should": "4",
     "supertest": "0",
     "istanbul-harmony": "0"
