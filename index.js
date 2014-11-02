@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 /**
- * Element of the arborescence used to configure the Router objects
+ * Element of the arborescence used to configure the Camino objects
  * contains a segment (string) and/or a parameter (non empty string)
  * and/or an http method and an action (generator)
  * @param {Object} config 
@@ -42,72 +42,19 @@ Step.prototype.append = function(step){
 };
 
 /**
- * Object configured by Steps or routes,
- * containing the middleware used by the application
- * A router creates an aroborescence of routers to build
- * its route network
+ * Element of the internal arborescence used by Camino object
+ * contains a segment (string) and/or a parameter (non empty string)
+ * and/or an http method and an action (generator)
  */
 function Router(){
-  var self = this;
   this.segments = new Map();
   this.methods = new Map();
-  
-  // middleware used by the application
-  this.route = function *(next, segments){
-    if(!segments){
-      // main router procesing : split the path and decode
-      segments = this.path.slice(1).split('/');
-      segments = segments.map(decodeURI);
-    }
-    if(segments.length === 0 || (segments.length === 1 && !segments[0])){
-      // no other segments to process
-      if(self.action){
-        // do the action associated with this router
-        return yield self.action.bind(this)(next);
-      } else {
-        let nextRouter = self.methods.get(this.method);
-        if(nextRouter){
-          // delegate the processing to the router correponding to the method
-          return yield nextRouter.route.bind(this)(next, segments);
-        } else {
-          // return with bad method error
-          this.status = (self.methods.size > 0 ? 405 : 404);
-          return yield next;
-        }
-      }
-    } else {
-      // process the first segment
-      let segment = segments[0];
-      // remove it from the rest of the segments
-      segments.shift();
-      let nextRouter = self.segments.get(segment);
-      if(nextRouter){
-        // delegate the processing to the router correponding to the segment
-        return yield nextRouter.route.bind(this)(next, segments);
-      } else if(self.parameter){
-        // if there is no segment but a parameter
-        if(!this.params){
-          // if there are no parameters already stored in the context
-          this.params = {};
-        }
-        // store the parameter
-        this.params[self.parameter.name] = segment;
-        // delegate the processing to the router correponding to the segment
-        return yield self.parameter.router.route.bind(this)(next, segments);
-      }else{
-        // bad path
-        this.status = 404;
-        return yield next;        
-      }
-    }
-  }; 
 }
 
 /**
- * Add a route directly to the Router
+ * Add a route to a Router (internal use only)
  * @param   {String}   description of the route : 'METHOD /path/...'
  * @param   {Function} generator   function associated to the route
- * @returns {Router}   the router (for chaining purposes)
  */
 Router.prototype.addRoute = function(description, generator){
   assert(description.match(
@@ -146,21 +93,18 @@ Router.prototype.addRoute = function(description, generator){
   }
   // add the prent step to the router
   this.addStep(step);
-  return this;
 };
 
 /**
- * Add the step and its sub-steps to the router
+ * Add the step and its sub-steps to the router (internal use only)
  * @param   {Step}   step
  * @param   {Array}  optional, only to be used internaly (recursion)
- * @returns {Router} the router
  */
 Router.prototype.addStep = function (step, processed){
   assert(step instanceof Step,
     'the first argument of the addStep function must be an instance of Step');
-  // initialize processed if not passed in arguments
   if(!processed){
-      processed = [];
+    processed = [];
   }
   if((step.segment || step.segment === '') &&
     processed.indexOf('segment') === -1){
@@ -231,9 +175,107 @@ Router.prototype.addStep = function (step, processed){
       processed.push('action');
     }
   }
-  // return the router
+};
+
+/**
+ * Recursive method finding the generator of the router arborescence
+ * and modifing the koa context if necessary (changing the status or
+ * adding a parameter attribute)
+ * @param   {Array}   array of segements (strings)
+ * @param   {Object}  koa context
+ * @returns {Generator} the generator corresponding to the segemnts, if exists
+ */
+Router.prototype.getRoute = function(segments, context){
+  if(segments.length === 0 || (segments.length === 1 && !segments[0])){
+    // no other segments to process
+    if(this.action){
+      // do the action associated with this router
+      return this.action;
+    } else {
+      let nextRouter = this.methods.get(context.method);
+      if(nextRouter){
+        // delegate the processing to the router correponding to the method
+        return nextRouter.getRoute(segments, context);
+      } else {
+        // return with bad method error
+        context.status = (this.methods.size > 0 ? 405 : 404);
+        return;
+      }
+    }
+  } else {
+    // process the first segment
+    let segment = segments.shift();
+    let nextRouter = this.segments.get(segment);
+    if(nextRouter){
+      // delegate the processing to the router correponding to the segment
+      return nextRouter.getRoute(segments, context);
+    } else if(this.parameter){
+      // if there is no segment but a parameter
+      if(!context.params){
+        // if there are no parameters already stored in the context
+        context.params = {};
+      }
+      // store the parameter
+      context.params[this.parameter.name] = segment;
+      // delegate the processing to the router correponding to the segment
+      return this.parameter.router.getRoute(segments, context);
+    }else{
+      this.status = 404;
+      return;
+    }
+  }
+};
+
+
+/**
+ * Object configured by Steps or routes,
+ * containing the middleware used by the application
+ * A camino creates an aroborescence to build
+ * its route network
+ */
+function Camino(){
+  var self = this;
+  
+  // root of the router arborescence
+  this.router= new Router();
+  
+  // middleware used by the application
+  this.route = function *(next){
+    // main router procesing : split the path and decode
+    var segments = this.path.slice(1).split('/').map(decodeURI);
+  
+    var action = self.router.getRoute(segments, this);
+    if(action){
+      // if an action is found, process it in the given koa context
+      return yield *action.call(this, next);
+    } else{
+      // else let koa do its job with middlewares
+      return yield *next;
+    }
+  }; 
+}
+
+/**
+ * Add a route to the camino
+ * @param   {String}   description of the route : 'METHOD /path/...'
+ * @param   {Function} generator   function associated to the route
+ * @returns {Camino}   the updated Camino, enabling chaining 
+ */
+Camino.prototype.addRoute = function(description, generator){
+  this.router.addRoute(description, generator);
   return this;
 };
 
-exports.Router = Router;
+/**
+ * Add the step and its sub-steps to the camino
+ * @param   {Step}   step
+ * @param   {Array}  optional, only to be used internaly (recursion)
+ * @returns {Camino}   the updated Camino, enabling chaining 
+ */
+Camino.prototype.addStep = function (step){
+  this.router.addStep(step, []);
+  return this;
+};
+
+exports.Camino = Camino;
 exports.Step = Step;

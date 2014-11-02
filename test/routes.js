@@ -4,7 +4,7 @@ var koa = require('koa'),
     http = require('http'),
     request = require('supertest'),
     should = require('should'),
-    Router = require('..').Router;
+    Camino = require('..').Camino;
 
 var app;
 var action;
@@ -39,20 +39,20 @@ describe('Routing configuration using routes', function() {
     });
     it('wrong route description', function() {
         var buildRoute = function(){
-        new Router().addRoute('dcdsvfd', action);
+        new Camino().addRoute('dcdsvfd', action);
       };
       buildRoute.should.throw();
     });
     it('existing method', function(done) {
-      app.use(new Router().addRoute('GET /', action).route);
+      app.use(new Camino().addRoute('GET /', action).route);
       server('GET', '/', 200, done);
     });
     it('wrong method', function(done) {
-      app.use(new Router().addRoute('GET /', action).route);
+      app.use(new Camino().addRoute('GET /', action).route);
       server('POST', '/', 405, done);
     });
     it('wrong path', function(done) {
-      app.use(new Router().addRoute('GET /', action).route);
+      app.use(new Camino().addRoute('GET /', action).route);
       server('GET', '/path', 404, done);
     });
   });
@@ -64,23 +64,23 @@ describe('Routing configuration using routes', function() {
       };
     });
     it('existing segment', function(done) {
-      app.use(new Router().addRoute('GET /seg', action).route);
+      app.use(new Camino().addRoute('GET /seg', action).route);
       server('GET', '/seg', 200, done);
     });
     it('wrong segment', function(done) {
-      app.use(new Router().addRoute('GET /seg', action).route);
+      app.use(new Camino().addRoute('GET /seg', action).route);
       server('GET', '/', 404, done);
     });
     it('wrong method on existing segment', function(done) {
-      app.use(new Router().addRoute('POST /seg', action).route);
+      app.use(new Camino().addRoute('POST /seg', action).route);
       server('GET', '/seg', 405, done);
     });
     it('linked segments', function(done) {
-      app.use(new Router().addRoute('GET /first/second', action).route);
+      app.use(new Camino().addRoute('GET /first/second', action).route);
       server('GET', '/first/second', 200, done);
     });
     it('linked segments wrong path', function(done) {
-      app.use(new Router().addRoute('GET /first/second', action).route);
+      app.use(new Camino().addRoute('GET /first/second', action).route);
       server('GET', '/first/', 404, done);
     });    
   });
@@ -93,7 +93,7 @@ describe('Routing configuration using routes', function() {
         should(this.params.param).be.equal('foo');
         this.status = 200;
       };
-      app.use(new Router().addRoute('GET /:param', action).route);
+      app.use(new Camino().addRoute('GET /:param', action).route);
       server('GET', '/foo/', 200, done);
     });
     it('with segment', function(done) {
@@ -101,7 +101,7 @@ describe('Routing configuration using routes', function() {
         should(this.params.param).be.equal('foo');
         this.status = 200;
       };
-      app.use(new Router().addRoute('GET /seg/:param', action).route);
+      app.use(new Camino().addRoute('GET /seg/:param', action).route);
       server('GET', '/', 404, done);
     });
     it('multiple parameters', function(done) {
@@ -110,7 +110,7 @@ describe('Routing configuration using routes', function() {
         should(this.params.second).be.equal('bar');
         this.status = 200;
       };
-      app.use(new Router().addRoute('GET /:first/:second', action).route);
+      app.use(new Camino().addRoute('GET /:first/:second', action).route);
       server('GET', '/foo/bar', 200, done);
     });
   });
@@ -125,21 +125,21 @@ describe('Routing configuration using routes', function() {
       };
     });
     it('first route', function(done) {
-      app.use(new Router()
+      app.use(new Camino()
               .addRoute('GET /foo/first', firstAction)
               .addRoute('GET /foo/second', secondAction)
               .route);
         server('GET', '/foo/first', 200, done);
     });
     it('second route', function(done) {
-      app.use(new Router()
+      app.use(new Camino()
               .addRoute('GET /foo/first', firstAction)
               .addRoute('GET /foo/second', secondAction)
               .route);
         server('GET', '/foo/second', 300, done);
     });
     it('segment precedence over parameter', function(done) {
-      app.use(new Router()
+      app.use(new Camino()
               .addRoute('GET /foo/:param', firstAction)
               .addRoute('GET /foo/seg', secondAction)
               .route);

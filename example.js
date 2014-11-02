@@ -1,12 +1,12 @@
 'use strict';
 
 var koa = require('koa'),
-    Router = require('koa-camino').Router,
+    Camino = require('koa-camino').Camino,
     Step = require('koa-camino').Step;
 
 /* Initializing koa application and router */
 var app = koa();
-var router = new Router();
+var router = new Camino();
 
 var action = function*(next){
   /* ... */

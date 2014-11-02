@@ -5,7 +5,7 @@ var koa = require('koa'),
     request = require('supertest'),
     should = require('should'),
     Step = require('..').Step,
-    Router = require('..').Router;
+    Camino = require('..').Camino;
 
 var app;
 var action;
@@ -38,17 +38,17 @@ describe('Routing configuration using steps', function() {
     });
     it('existing method', function(done) {
       var step = new Step({method: 'get', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('GET', '/', 200, done);
     });
     it('wrong method', function(done) {
       var step = new Step({method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('POST', '/', 405, done);
     });
     it('wrong path', function(done) {
       var step = new Step({method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('GET', '/path', 404, done);
     });
   });
@@ -61,18 +61,18 @@ describe('Routing configuration using steps', function() {
     });
     it('simple segment', function(done) {
       var step = new Step({segment: 'seg', method: 'get', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('GET', '/seg', 200, done);
     });
     it('bad segment', function(done) {
       var step = new Step({segment: 'seg', method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       request(http.createServer(app.callback()));
       server('GET', '/bad', 404, done);
     });
     it('bad method', function(done) {
       var step = new Step({segment: 'seg', method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       request(http.createServer(app.callback()));
       server('POST', '/seg', 405, done);
     });
@@ -82,7 +82,7 @@ describe('Routing configuration using steps', function() {
       );
       var secondStep =
           new Step({segment: 'second', method: 'GET', action: action});
-      app.use(new Router().addStep(firstStep).addStep(secondStep).route);
+      app.use(new Camino().addStep(firstStep).addStep(secondStep).route);
       server('GET', '/first', 200, done);
     });
     it('multiple segments (second)', function(done) {
@@ -91,7 +91,7 @@ describe('Routing configuration using steps', function() {
       );
       var secondStep =
           new Step({segment: 'second', method: 'GET', action: action});
-      app.use(new Router().addStep(firstStep).addStep(secondStep).route);
+      app.use(new Camino().addStep(firstStep).addStep(secondStep).route);
       server('GET', '/second', 200, done);
     });   
     it('linked segments', function(done) {
@@ -99,7 +99,7 @@ describe('Routing configuration using steps', function() {
       var secondStep =
           new Step({segment: 'second', method: 'GET', action: action});
       firstStep.append(secondStep);
-      app.use(new Router().addStep(firstStep).route);
+      app.use(new Camino().addStep(firstStep).route);
       server('GET', '/first/second', 200, done);
     });
     it('linked segments multiple actions', function(done) {
@@ -112,7 +112,7 @@ describe('Routing configuration using steps', function() {
       var secondStep =
           new Step({segment: 'second', method: 'GET', action: action});
       firstStep.append(secondStep);
-      app.use(new Router().addStep(firstStep).route);
+      app.use(new Camino().addStep(firstStep).route);
       server('GET', '/first', 300, done);
     });
     it('bad linked segments', function(done) {
@@ -120,7 +120,7 @@ describe('Routing configuration using steps', function() {
       var secondStep =
           new Step({segment: 'second', method: 'GET', action: action});
       firstStep.append(secondStep);
-      app.use(new Router().addStep(firstStep).route);
+      app.use(new Camino().addStep(firstStep).route);
       server('GET', '/first', 404, done);
     });
   });
@@ -135,7 +135,7 @@ describe('Routing configuration using steps', function() {
       };
       var step =
           new Step({parameter: 'param', method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('GET', '/foo', 200, done);
     });
     it('multiple parameters', function(done) {
@@ -148,7 +148,7 @@ describe('Routing configuration using steps', function() {
       var secondStep =
           new Step({parameter: 'second', method: 'GET', action: action});
       firstStep.append(secondStep);
-      app.use(new Router().addStep(firstStep).route);
+      app.use(new Camino().addStep(firstStep).route);
       server('GET', '/foo/bar', 200, done);
     });
   });
@@ -167,7 +167,7 @@ describe('Routing configuration using steps', function() {
              parameter: 'param',
              method: 'GET',
              action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       request(http.createServer(app.callback()));
       server('GET', '/seg/foo', 200, done);
     });
@@ -188,7 +188,7 @@ describe('Routing configuration using steps', function() {
             {segment: 'seg',
              method: 'GET',
              action: segAction});
-      app.use(new Router().addStep(paramStep).addStep(segStep).route);
+      app.use(new Camino().addStep(paramStep).addStep(segStep).route);
       server('GET', '/seg', 200, done);
     });
     it('two parameters on same place', function() {
@@ -197,7 +197,7 @@ describe('Routing configuration using steps', function() {
       var secondStep =
           new Step({parameter: 'second', method: 'GET', action: action});
       var buildRouter = function(){
-        new Router().addStep(firstStep).addStep(secondStep);
+        new Camino().addStep(firstStep).addStep(secondStep);
       };
       buildRouter.should.throw();
     });
@@ -212,13 +212,13 @@ describe('Routing configuration using steps', function() {
     it('simple segment', function(done) {
       var step =
           new Step({segment: '', method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('GET', '//', 200, done);
     });
     it('root vs simple segment', function(done) {
       var step =
           new Step({segment: '', method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('GET', '/', 404, done);
     });
     it('linked segments', function(done) {
@@ -226,26 +226,26 @@ describe('Routing configuration using steps', function() {
       var secondStep =
           new Step({segment: 'second', method: 'GET', action: action});
       firstStep.append(secondStep);
-      app.use(new Router().addStep(firstStep).route);
+      app.use(new Camino().addStep(firstStep).route);
       server('GET', '//second/', 200, done);
     });
     it('simple parameter', function(done) {
       var step =
           new Step({parameter: 'param', method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('GET', '//', 200, done);
     });
     it('root vs simple parameter', function(done) {
       var step =
           new Step({parameter: 'param', method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('GET', '/', 404, done);
     });
     it('unnamed parameter', function() {
       var buildRouter = function(){
         var step =
           new Step({parameter: '', method: 'GET', action: action});
-        new Router().addStep(step);
+        new Camino().addStep(step);
       };
       buildRouter.should.throw();
     });
@@ -261,7 +261,7 @@ describe('Routing configuration using steps', function() {
     it('simple segment with space', function(done) {
       var step =
           new Step({segment: ' seg', method: 'GET', action: action});
-      app.use(new Router().addStep(step).route);
+      app.use(new Camino().addStep(step).route);
       server('GET', '/ seg/', 200, done);
     });
   });

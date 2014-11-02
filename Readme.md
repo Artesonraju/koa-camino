@@ -20,10 +20,10 @@ $ npm install name
 
 ```js
 var koa = require('koa'),
-    Router = require('koa-camino').Router,
+    Camino = require('koa-camino').Camino,
     Step = require('koa-camino').Step;
 var app = koa();
-var router = new Router();
+var router = new Camino();
 
 /* Configure router */
 
